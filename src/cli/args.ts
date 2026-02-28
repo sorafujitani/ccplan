@@ -26,7 +26,7 @@ export function parse<T extends OptionDefs>(
     args,
     options: options as Parameters<typeof parseArgs>[0]["options"],
     allowPositionals: true,
-    strict: false,
+    strict: true,
   });
   return { values, positionals } as ParsedArgs<T>;
 }

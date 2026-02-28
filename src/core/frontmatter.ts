@@ -1,19 +1,13 @@
 import matter from "gray-matter";
 
-export type PlanStatus = "draft" | "active" | "done" | "archived";
+export type PlanStatus = "draft" | "active" | "done";
 
-export const VALID_STATUSES: PlanStatus[] = [
-  "draft",
-  "active",
-  "done",
-  "archived",
-];
+export const VALID_STATUSES: PlanStatus[] = ["draft", "active", "done"];
 
 export type CcplanFrontmatter = {
   status: PlanStatus;
   created: string;
   updated: string;
-  branch?: string;
 };
 
 export type ParsedPlan = {
@@ -52,8 +46,6 @@ export function parsePlan(raw: string): ParsedPlan {
     status,
     created: typeof ccplan.created === "string" ? ccplan.created : "",
     updated: typeof ccplan.updated === "string" ? ccplan.updated : "",
-    branch:
-      typeof ccplan.branch === "string" ? ccplan.branch : undefined,
   };
 
   return { frontmatter, content, rawData: data };
@@ -72,11 +64,6 @@ export function serializePlan(
 
   const merged: Record<string, unknown> = { ...existing, ...updates };
   merged.updated = new Date().toISOString();
-
-  // branch が undefined なら削除しない（既存を保持）
-  if (updates.branch === undefined && existing.branch !== undefined) {
-    merged.branch = existing.branch;
-  }
 
   data.ccplan = merged;
 

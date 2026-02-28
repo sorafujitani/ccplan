@@ -1,5 +1,6 @@
-import { parse, formatOptionsHelp } from "./args.js";
+import { formatOptionsHelp } from "./args.js";
 import type { OptionDefs } from "./args.js";
+import { printCompletions } from "./completions.js";
 
 export type CommandHandler = (args: string[]) => Promise<void>;
 
@@ -37,6 +38,11 @@ export class Router {
       return;
     }
 
+    if (first === "--completions") {
+      printCompletions(args[1] ?? "zsh");
+      return;
+    }
+
     const cmd = this.commands.get(first);
     if (cmd) {
       const subArgs = args.slice(1);
@@ -46,15 +52,9 @@ export class Router {
       }
       await cmd.handler(subArgs);
     } else {
-      // デフォルトで list を実行（サブコマンド未指定時）
-      const listCmd = this.commands.get("list");
-      if (listCmd) {
-        await listCmd.handler(args);
-      } else {
-        console.error(`Unknown command: ${first}`);
-        this.printHelp();
-        process.exitCode = 1;
-      }
+      console.error(`Unknown command: ${first}`);
+      this.printHelp();
+      process.exitCode = 1;
     }
   }
 

@@ -5,13 +5,11 @@ import type { PlanStatus } from "../core/frontmatter.js";
 export function colorStatus(status: PlanStatus): string {
   switch (status) {
     case "draft":
-      return chalk.gray(status);
+      return chalk.yellow(status);
     case "active":
       return chalk.blue(status);
     case "done":
       return chalk.green(status);
-    case "archived":
-      return chalk.dim(status);
   }
 }
 
@@ -25,37 +23,11 @@ export function formatPlanTable(plans: Plan[]): string {
     const status = plan.frontmatter
       ? colorStatus(plan.frontmatter.status)
       : chalk.yellow("no-meta");
-    const branch = plan.frontmatter?.branch
-      ? chalk.cyan(` [${plan.frontmatter.branch}]`)
-      : "";
     const updated = plan.frontmatter?.updated
       ? chalk.dim(` ${formatRelativeDate(plan.frontmatter.updated)}`)
       : "";
-    lines.push(`  ${status.padEnd(20)} ${plan.filename}${branch}${updated}`);
+    lines.push(`  ${status.padEnd(20)} ${plan.filename}${updated}`);
   }
-
-  return lines.join("\n");
-}
-
-export function formatPlanDetail(plan: Plan): string {
-  const lines: string[] = [];
-
-  lines.push(chalk.bold(plan.filename));
-  lines.push("");
-
-  if (plan.frontmatter) {
-    lines.push(`  Status:  ${colorStatus(plan.frontmatter.status)}`);
-    if (plan.frontmatter.branch) {
-      lines.push(`  Branch:  ${chalk.cyan(plan.frontmatter.branch)}`);
-    }
-    lines.push(`  Created: ${plan.frontmatter.created}`);
-    lines.push(`  Updated: ${plan.frontmatter.updated}`);
-  } else {
-    lines.push(chalk.yellow("  No ccplan metadata"));
-  }
-
-  lines.push("");
-  lines.push(plan.content);
 
   return lines.join("\n");
 }

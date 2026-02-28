@@ -1,4 +1,4 @@
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile, stat } from "node:fs/promises";
 import { join, basename } from "node:path";
 import { parsePlan } from "./frontmatter.js";
 import type { CcplanFrontmatter } from "./frontmatter.js";
@@ -49,21 +49,34 @@ export function resolvePlanFile(
   plans: Plan[],
   ref: string,
 ): Plan | undefined {
-  // 完全一致
-  const exact = plans.find((p) => p.filename === ref);
+  const name = basename(ref);
+
+  const exact = plans.find((p) => p.filename === name);
   if (exact) return exact;
 
-  // .md 付きで完全一致
-  const withExt = plans.find((p) => p.filename === `${ref}.md`);
+  const withExt = plans.find((p) => p.filename === `${name}.md`);
   if (withExt) return withExt;
 
-  // prefix 一致
-  const prefix = plans.filter((p) => p.filename.startsWith(ref));
-  if (prefix.length === 1) return prefix[0];
-
-  // substring 一致
-  const substring = plans.filter((p) => p.filename.includes(ref));
-  if (substring.length === 1) return substring[0];
-
   return undefined;
+}
+
+export async function getLatestPlan(
+  plansDir: string,
+): Promise<Plan | undefined> {
+  const entries = await readdir(plansDir);
+  const mdFiles = entries.filter((f) => f.endsWith(".md"));
+
+  if (mdFiles.length === 0) return undefined;
+
+  let latest: { filepath: string; mtime: number } | null = null;
+  for (const file of mdFiles) {
+    const filepath = join(plansDir, file);
+    const s = await stat(filepath);
+    if (!latest || s.mtimeMs > latest.mtime) {
+      latest = { filepath, mtime: s.mtimeMs };
+    }
+  }
+
+  if (!latest) return undefined;
+  return readPlan(latest.filepath);
 }

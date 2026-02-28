@@ -1,7 +1,6 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { unlink } from "node:fs/promises";
 import { resolveConfig } from "../core/config.js";
 import { scanPlans } from "../core/plan.js";
-import { serializePlan } from "../core/frontmatter.js";
 import { parse } from "../cli/args.js";
 import { confirm } from "../utils/prompt.js";
 import type { CommandDef } from "../cli/router.js";
@@ -26,7 +25,7 @@ const options = {
 
 export const cleanCommand: CommandDef = {
   name: "clean",
-  description: "Archive done plans",
+  description: "Delete done plans",
   usage: "ccplan clean [--days <n>] [--dry-run] [--force]",
   options,
   handler: async (args) => {
@@ -48,11 +47,11 @@ export const cleanCommand: CommandDef = {
     });
 
     if (targets.length === 0) {
-      console.log(chalk.dim("No plans to archive."));
+      console.log(chalk.dim("No plans to delete."));
       return;
     }
 
-    console.log(`Found ${targets.length} plan(s) to archive:`);
+    console.log(`Found ${targets.length} plan(s) to delete:`);
     for (const plan of targets) {
       console.log(`  ${plan.filename}`);
     }
@@ -63,7 +62,7 @@ export const cleanCommand: CommandDef = {
     }
 
     if (!values.force) {
-      const ok = await confirm("\nArchive these plans?");
+      const ok = await confirm("\nDelete these plans?");
       if (!ok) {
         console.log(chalk.dim("Cancelled."));
         return;
@@ -71,10 +70,8 @@ export const cleanCommand: CommandDef = {
     }
 
     for (const plan of targets) {
-      const raw = await readFile(plan.filepath, "utf-8");
-      const updated = serializePlan(raw, { status: "archived" });
-      await writeFile(plan.filepath, updated, "utf-8");
-      console.log(`${chalk.green("✓")} ${plan.filename}: done → archived`);
+      await unlink(plan.filepath);
+      console.log(`${chalk.red("✗")} ${plan.filename} deleted`);
     }
   },
 };

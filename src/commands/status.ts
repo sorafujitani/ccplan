@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolveConfig } from "../core/config.js";
-import { scanPlans, resolvePlanFile } from "../core/plan.js";
+import { scanPlans, resolvePlanFile, getLatestPlan } from "../core/plan.js";
 import {
   isValidStatus,
   serializePlan,
@@ -12,22 +12,65 @@ import { parse } from "../cli/args.js";
 import type { CommandDef } from "../cli/router.js";
 import chalk from "chalk";
 
+const options = {
+  latest: {
+    type: "boolean" as const,
+    short: "l",
+    description: "Target the most recently modified plan",
+  },
+};
+
 export const statusCommand: CommandDef = {
   name: "status",
   description: "Change plan status",
-  usage: "ccplan status <file> <status>",
+  usage: "ccplan status <file> <status> or ccplan status --latest <status>",
+  options,
   handler: async (args) => {
-    const { positionals } = parse(args, {});
+    const { values, positionals } = parse(args, options);
+    const config = await resolveConfig();
 
-    if (positionals.length < 2) {
-      console.error(
-        `Usage: ccplan status <file> <status>\nValid statuses: ${VALID_STATUSES.join(", ")}`,
-      );
-      process.exitCode = 1;
-      return;
+    let plan;
+    let newStatus: string;
+
+    if (values.latest) {
+      if (positionals.length < 1) {
+        console.error(
+          `Usage: ccplan status --latest <status>\nValid statuses: ${VALID_STATUSES.join(", ")}`,
+        );
+        process.exitCode = 1;
+        return;
+      }
+      newStatus = positionals[0];
+      plan = await getLatestPlan(config.plansDir);
+      if (!plan) {
+        console.error("No plans found.");
+        process.exitCode = 1;
+        return;
+      }
+    } else {
+      if (positionals.length === 0) {
+        console.error(
+          `Usage: ccplan status <file> <status>\nValid statuses: ${VALID_STATUSES.join(", ")}`,
+        );
+        process.exitCode = 1;
+        return;
+      }
+      if (positionals.length === 1) {
+        console.error(
+          `Missing <status> argument.\nValid statuses: ${VALID_STATUSES.join(", ")}`,
+        );
+        process.exitCode = 1;
+        return;
+      }
+      newStatus = positionals[1];
+      const plans = await scanPlans(config.plansDir);
+      plan = resolvePlanFile(plans, positionals[0]);
+      if (!plan) {
+        console.error(`Plan not found: ${positionals[0]}`);
+        process.exitCode = 1;
+        return;
+      }
     }
-
-    const [ref, newStatus] = positionals;
 
     if (!isValidStatus(newStatus)) {
       console.error(
@@ -37,22 +80,11 @@ export const statusCommand: CommandDef = {
       return;
     }
 
-    const config = await resolveConfig();
-    const plans = await scanPlans(config.plansDir);
-    const plan = resolvePlanFile(plans, ref);
-
-    if (!plan) {
-      console.error(`Plan not found: ${ref}`);
-      process.exitCode = 1;
-      return;
-    }
-
     const raw = await readFile(plan.filepath, "utf-8");
     const oldStatus = plan.frontmatter?.status ?? "none";
 
     let updated: string;
     if (!plan.hasFrontmatter) {
-      // frontmatter なしなら自動付与
       const defaults = createDefaultFrontmatter();
       defaults.status = newStatus as PlanStatus;
       updated = serializePlan(raw, defaults);
