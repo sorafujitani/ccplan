@@ -32,7 +32,13 @@ jobs:
         run: node dist/index.js --version
 
       - name: Publish to npm
-        run: npm publish
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if npm view ccplan@"$PKG_VERSION" version 2>/dev/null; then
+            echo "v$PKG_VERSION already published, skipping"
+          else
+            npm publish
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
