@@ -1,4 +1,4 @@
-import { access, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 
 export async function dirExists(path: string): Promise<boolean> {
   try {
@@ -11,8 +11,8 @@ export async function dirExists(path: string): Promise<boolean> {
 
 export async function fileExists(path: string): Promise<boolean> {
   try {
-    await access(path);
-    return true;
+    const s = await stat(path);
+    return s.isFile();
   } catch {
     return false;
   }

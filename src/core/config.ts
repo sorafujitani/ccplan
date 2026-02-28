@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import { join } from "node:path";
 import { dirExists } from "../utils/fs.js";
 
@@ -6,17 +7,23 @@ export type Config = {
   plansDir: string;
 };
 
-export async function findGitRoot(): Promise<string> {
-  const proc = Bun.spawnSync(["git", "rev-parse", "--show-toplevel"]);
-  const stdout = proc.stdout.toString().trim();
-  if (proc.exitCode !== 0 || !stdout) {
+export function findGitRoot(): string {
+  try {
+    const stdout = execSync("git rev-parse --show-toplevel", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
+    if (!stdout) {
+      throw new Error("Not a git repository (or git is not installed)");
+    }
+    return stdout;
+  } catch {
     throw new Error("Not a git repository (or git is not installed)");
   }
-  return stdout;
 }
 
 export async function resolveConfig(): Promise<Config> {
-  const gitRoot = await findGitRoot();
+  const gitRoot = findGitRoot();
   const plansDir = join(gitRoot, ".claude", "plans");
 
   if (!(await dirExists(plansDir))) {

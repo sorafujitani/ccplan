@@ -3,38 +3,56 @@ import { join, basename } from "node:path";
 import { parsePlan } from "./frontmatter.js";
 import type { CcplanFrontmatter } from "./frontmatter.js";
 
-export type Plan = {
+export type PlanWithFrontmatter = {
   filename: string;
   filepath: string;
-  frontmatter: CcplanFrontmatter | null;
+  frontmatter: CcplanFrontmatter;
   content: string;
-  hasFrontmatter: boolean;
+  hasFrontmatter: true;
 };
+
+export type PlanWithoutFrontmatter = {
+  filename: string;
+  filepath: string;
+  frontmatter: null;
+  content: string;
+  hasFrontmatter: false;
+};
+
+export type Plan = PlanWithFrontmatter | PlanWithoutFrontmatter;
+
+export type ResolvePlanResult =
+  | { ok: true; plan: Plan }
+  | { ok: false; error: string };
 
 export async function scanPlans(plansDir: string): Promise<Plan[]> {
   const entries = await readdir(plansDir);
   const mdFiles = entries.filter((f) => f.endsWith(".md"));
 
-  const plans: Plan[] = [];
-  for (const file of mdFiles) {
-    const filepath = join(plansDir, file);
-    const plan = await readPlan(filepath);
-    plans.push(plan);
-  }
-
-  return plans;
+  return Promise.all(mdFiles.map((file) => readPlan(join(plansDir, file))));
 }
 
 export async function readPlan(filepath: string): Promise<Plan> {
   const raw = await readFile(filepath, "utf-8");
   const parsed = parsePlan(raw);
+  const filename = basename(filepath);
+
+  if (parsed.frontmatter !== null) {
+    return {
+      filename,
+      filepath,
+      frontmatter: parsed.frontmatter,
+      content: parsed.content,
+      hasFrontmatter: true,
+    };
+  }
 
   return {
-    filename: basename(filepath),
+    filename,
     filepath,
-    frontmatter: parsed.frontmatter,
+    frontmatter: null,
     content: parsed.content,
-    hasFrontmatter: parsed.frontmatter !== null,
+    hasFrontmatter: false,
   };
 }
 
@@ -60,6 +78,27 @@ export function resolvePlanFile(
   return undefined;
 }
 
+export async function resolveSinglePlan(
+  plansDir: string,
+  ref: string | undefined,
+  useLatest: boolean,
+): Promise<ResolvePlanResult> {
+  if (useLatest) {
+    const plan = await getLatestPlan(plansDir);
+    if (!plan) return { ok: false, error: "No plans found." };
+    return { ok: true, plan };
+  }
+
+  if (!ref) {
+    return { ok: false, error: "No plan file specified." };
+  }
+
+  const plans = await scanPlans(plansDir);
+  const plan = resolvePlanFile(plans, ref);
+  if (!plan) return { ok: false, error: `Plan not found: ${ref}` };
+  return { ok: true, plan };
+}
+
 export async function getLatestPlan(
   plansDir: string,
 ): Promise<Plan | undefined> {
@@ -68,15 +107,14 @@ export async function getLatestPlan(
 
   if (mdFiles.length === 0) return undefined;
 
-  let latest: { filepath: string; mtime: number } | null = null;
-  for (const file of mdFiles) {
-    const filepath = join(plansDir, file);
-    const s = await stat(filepath);
-    if (!latest || s.mtimeMs > latest.mtime) {
-      latest = { filepath, mtime: s.mtimeMs };
-    }
-  }
+  const stats = await Promise.all(
+    mdFiles.map(async (file) => {
+      const filepath = join(plansDir, file);
+      const s = await stat(filepath);
+      return { filepath, mtime: s.mtimeMs };
+    }),
+  );
 
-  if (!latest) return undefined;
+  const latest = stats.reduce((a, b) => (b.mtime > a.mtime ? b : a));
   return readPlan(latest.filepath);
 }

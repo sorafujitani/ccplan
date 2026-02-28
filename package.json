@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build ./src/index.ts --outfile dist/index.js --target bun --format esm --banner \"#!/usr/bin/env bun\"",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist/index.js --banner:js='#!/usr/bin/env node\nimport{createRequire}from\"module\";const require=createRequire(import.meta.url);'",
     "build:bin": "bun build --compile ./src/index.ts --outfile ccplan --minify",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -24,7 +24,8 @@
   },
   "devDependencies": {
     "@typescript/native-preview": "latest",
-    "bun-types": "^1.3.10",
+    "@types/node": "^22",
+    "esbuild": "^0.25",
     "oxlint": "latest",
     "typescript": "^5.8.2",
     "vitest": "^3.1.1"
@@ -41,6 +42,6 @@
     "cli"
   ],
   "engines": {
-    "bun": ">=1.0"
+    "node": ">=18"
   }
 }

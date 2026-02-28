@@ -7,7 +7,6 @@ import {
   serializePlan,
   createDefaultFrontmatter,
 } from "../../src/core/frontmatter.js";
-import type { PlanStatus } from "../../src/core/frontmatter.js";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 
@@ -30,7 +29,7 @@ describe("status command logic", () => {
     expect(plan).toBeDefined();
 
     const raw = await readFile(plan!.filepath, "utf-8");
-    const updated = serializePlan(raw, { status: "active" as PlanStatus });
+    const updated = serializePlan(raw, { status: "active" });
     const targetPath = join(tempDir, plan!.filename);
     await writeFile(targetPath, updated, "utf-8");
 

@@ -8,20 +8,20 @@ import chalk from "chalk";
 
 const options = {
   days: {
-    type: "string" as const,
+    type: "string",
     short: "d",
     description: "Minimum days since updated (default: 30)",
   },
   "dry-run": {
-    type: "boolean" as const,
+    type: "boolean",
     description: "Preview without changes",
   },
   force: {
-    type: "boolean" as const,
+    type: "boolean",
     short: "f",
     description: "Skip confirmation",
   },
-};
+} as const satisfies import("../cli/args.js").OptionDefs;
 
 export const cleanCommand: CommandDef = {
   name: "clean",
@@ -31,7 +31,7 @@ export const cleanCommand: CommandDef = {
   handler: async (args) => {
     const { values } = parse(args, options);
     const minDays = values.days ? parseInt(values.days, 10) : 30;
-    const dryRun = values["dry-run"] as boolean | undefined;
+    const dryRun = values["dry-run"];
 
     const config = await resolveConfig();
     const plans = await scanPlans(config.plansDir);

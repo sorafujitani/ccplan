@@ -37,7 +37,9 @@ export function formatPlanJson(plans: Plan[]): string {
     filename: p.filename,
     filepath: p.filepath,
     hasFrontmatter: p.hasFrontmatter,
-    ...p.frontmatter,
+    status: p.frontmatter?.status ?? null,
+    created: p.frontmatter?.created ?? null,
+    updated: p.frontmatter?.updated ?? null,
   }));
   return JSON.stringify(data, null, 2);
 }

@@ -6,15 +6,15 @@ import type { CommandDef } from "../cli/router.js";
 
 const options = {
   status: {
-    type: "string" as const,
+    type: "string",
     short: "s",
     description: "Filter by status (draft|active|done)",
   },
   json: {
-    type: "boolean" as const,
+    type: "boolean",
     description: "Output as JSON",
   },
-};
+} as const satisfies import("../cli/args.js").OptionDefs;
 
 export const listCommand: CommandDef = {
   name: "list",

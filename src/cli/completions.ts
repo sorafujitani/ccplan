@@ -95,16 +95,27 @@ const BASH_COMPLETION = `_ccplan() {
 }
 complete -F _ccplan ccplan`;
 
+const SUPPORTED_SHELLS = ["bash", "zsh"] as const;
+
+type Shell = (typeof SUPPORTED_SHELLS)[number];
+
+const COMPLETIONS: Record<Shell, string> = {
+  zsh: ZSH_COMPLETION,
+  bash: BASH_COMPLETION,
+};
+
+function isSupportedShell(shell: string): shell is Shell {
+  return (SUPPORTED_SHELLS as readonly string[]).includes(shell);
+}
+
 export function printCompletions(shell: string): void {
-  switch (shell) {
-    case "zsh":
-      console.log(ZSH_COMPLETION);
-      break;
-    case "bash":
-      console.log(BASH_COMPLETION);
-      break;
-    default:
-      console.error(`Unsupported shell: ${shell}\nSupported: bash, zsh`);
-      process.exitCode = 1;
+  if (isSupportedShell(shell)) {
+    console.log(COMPLETIONS[shell]);
+    return;
   }
+
+  console.error(
+    `Unsupported shell: ${shell}\nSupported: ${SUPPORTED_SHELLS.join(", ")}`,
+  );
+  process.exitCode = 1;
 }

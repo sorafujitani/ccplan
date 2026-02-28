@@ -1,8 +1,8 @@
 import matter from "gray-matter";
 
-export type PlanStatus = "draft" | "active" | "done";
+export const VALID_STATUSES = ["draft", "active", "done"] as const;
 
-export const VALID_STATUSES: PlanStatus[] = ["draft", "active", "done"];
+export type PlanStatus = (typeof VALID_STATUSES)[number];
 
 export type CcplanFrontmatter = {
   status: PlanStatus;
@@ -17,7 +17,7 @@ export type ParsedPlan = {
 };
 
 export function isValidStatus(s: string): s is PlanStatus {
-  return VALID_STATUSES.includes(s as PlanStatus);
+  return (VALID_STATUSES as readonly string[]).includes(s);
 }
 
 export function createDefaultFrontmatter(): CcplanFrontmatter {
@@ -55,10 +55,11 @@ export function serializePlan(
   raw: string,
   updates: Partial<CcplanFrontmatter>,
 ): string {
-  const { data, content } = matter(raw);
+  const parsed = matter(raw);
+  const data = structuredClone(parsed.data);
 
   const existing =
-    data.ccplan && typeof data.ccplan === "object"
+    data.ccplan !== null && typeof data.ccplan === "object"
       ? (data.ccplan as Record<string, unknown>)
       : {};
 
@@ -67,5 +68,5 @@ export function serializePlan(
 
   data.ccplan = merged;
 
-  return matter.stringify(content, data);
+  return matter.stringify(parsed.content, data);
 }

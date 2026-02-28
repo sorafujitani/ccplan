@@ -1,4 +1,4 @@
-import { parseArgs } from "node:util";
+import { parseArgs, type ParseArgsConfig } from "node:util";
 
 export type OptionDef = {
   type: "string" | "boolean";
@@ -13,7 +13,7 @@ export type ParsedArgs<T extends OptionDefs> = {
   values: {
     [K in keyof T]: T[K]["type"] extends "string"
       ? string | undefined
-      : boolean;
+      : boolean | undefined;
   };
   positionals: string[];
 };
@@ -24,7 +24,7 @@ export function parse<T extends OptionDefs>(
 ): ParsedArgs<T> {
   const { values, positionals } = parseArgs({
     args,
-    options: options as Parameters<typeof parseArgs>[0]["options"],
+    options: options as ParseArgsConfig["options"],
     allowPositionals: true,
     strict: true,
   });
