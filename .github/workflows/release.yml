@@ -49,9 +49,6 @@ jobs:
           - os: macos-latest
             target: bun-darwin-arm64
             artifact: ccplan-darwin-arm64
-          - os: macos-13
-            target: bun-darwin-x64
-            artifact: ccplan-darwin-x64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
