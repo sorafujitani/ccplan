@@ -7,10 +7,12 @@ Adds frontmatter with status (draft / active / done) to plan files, enabling lis
 ## Install
 
 ```bash
-# Run with bunx
-bunx ccplan
+# npm
+npx ccplan
+npm install -g ccplan
 
-# Global install
+# Bun
+bunx ccplan
 bun add -g ccplan
 
 # Single binary (GitHub Releases)
