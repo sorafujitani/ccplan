@@ -1,0 +1,46 @@
+{
+  "name": "ccplan",
+  "version": "0.1.0",
+  "description": "CLI tool to manage Claude Code plan file lifecycle",
+  "type": "module",
+  "bin": {
+    "ccplan": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outfile dist/index.js --target bun --format esm --banner \"#!/usr/bin/env bun\"",
+    "build:bin": "bun build --compile ./src/index.ts --outfile ccplan --minify",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "oxlint src tests",
+    "format": "oxfmt src tests",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "@typescript/native-preview": "latest",
+    "bun-types": "^1.3.10",
+    "oxlint": "latest",
+    "typescript": "^5.8.2",
+    "vitest": "^3.1.1"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fujitanisora/ccplan"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "plan",
+    "cli"
+  ],
+  "engines": {
+    "bun": ">=1.0"
+  }
+}
