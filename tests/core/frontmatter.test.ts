@@ -11,7 +11,6 @@ describe("isValidStatus", () => {
     expect(isValidStatus("draft")).toBe(true);
     expect(isValidStatus("active")).toBe(true);
     expect(isValidStatus("done")).toBe(true);
-    expect(isValidStatus("archived")).toBe(true);
   });
 
   it("rejects invalid statuses", () => {
@@ -26,7 +25,6 @@ describe("createDefaultFrontmatter", () => {
     expect(fm.status).toBe("draft");
     expect(fm.created).toBeTruthy();
     expect(fm.updated).toBeTruthy();
-    expect(fm.branch).toBeUndefined();
   });
 });
 
@@ -37,7 +35,6 @@ ccplan:
   status: active
   created: "2026-01-01T00:00:00.000Z"
   updated: "2026-01-02T00:00:00.000Z"
-  branch: feature/foo
 ---
 
 # My Plan
@@ -46,7 +43,6 @@ Content here.`;
     const result = parsePlan(raw);
     expect(result.frontmatter).not.toBeNull();
     expect(result.frontmatter!.status).toBe("active");
-    expect(result.frontmatter!.branch).toBe("feature/foo");
     expect(result.content).toContain("# My Plan");
   });
 
@@ -130,19 +126,16 @@ ccplan:
   status: draft
   created: "2026-01-01T00:00:00.000Z"
   updated: "2026-01-01T00:00:00.000Z"
-  branch: main
 ---
 
 # Plan Title
 
 Some content here.`;
 
-    const parsed = parsePlan(raw);
     const serialized = serializePlan(raw, { status: "active" });
     const reParsed = parsePlan(serialized);
 
     expect(reParsed.frontmatter!.status).toBe("active");
-    expect(reParsed.frontmatter!.branch).toBe("main");
     expect(reParsed.content.trim()).toContain("# Plan Title");
     expect(reParsed.content.trim()).toContain("Some content here.");
   });

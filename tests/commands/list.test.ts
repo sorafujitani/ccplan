@@ -13,20 +13,6 @@ describe("list command logic", () => {
     expect(active[0].filename).toBe("plan-active.md");
   });
 
-  it("excludes archived by default", async () => {
-    const plans = await scanPlans(FIXTURES_DIR);
-    const visible = plans.filter((p) => p.frontmatter?.status !== "archived");
-    expect(visible.some((p) => p.frontmatter?.status === "archived")).toBe(
-      false,
-    );
-    expect(visible.length).toBe(4);
-  });
-
-  it("includes archived with --all", async () => {
-    const plans = await scanPlans(FIXTURES_DIR);
-    expect(plans.some((p) => p.frontmatter?.status === "archived")).toBe(true);
-  });
-
   it("sorts by updated descending", async () => {
     const plans = await scanPlans(FIXTURES_DIR);
     const withDates = plans.filter((p) => p.frontmatter?.updated);
@@ -46,7 +32,7 @@ describe("list command logic", () => {
     const json = formatPlanJson(plans);
     const parsed = JSON.parse(json);
     expect(Array.isArray(parsed)).toBe(true);
-    expect(parsed.length).toBe(5);
+    expect(parsed.length).toBe(4);
     expect(parsed[0]).toHaveProperty("filename");
   });
 });

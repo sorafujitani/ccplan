@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { join } from "node:path";
-import { readFile, writeFile, cp, rm } from "node:fs/promises";
+import { cp, rm } from "node:fs/promises";
 import { scanPlans } from "../../src/core/plan.js";
-import { parsePlan, serializePlan } from "../../src/core/frontmatter.js";
+import { fileExists } from "../../src/utils/fs.js";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
+import { unlink } from "node:fs/promises";
 
 const FIXTURES_DIR = join(import.meta.dirname, "../fixtures/plans");
 let tempDir: string;
@@ -37,18 +38,13 @@ describe("clean command logic", () => {
     expect(targets[0].filename).toBe("plan-done.md");
   });
 
-  it("archives done plans", async () => {
+  it("deletes done plans", async () => {
     const plans = await scanPlans(tempDir);
     const donePlan = plans.find((p) => p.frontmatter?.status === "done");
     expect(donePlan).toBeDefined();
 
-    const raw = await readFile(donePlan!.filepath, "utf-8");
-    const updated = serializePlan(raw, { status: "archived" });
-    const targetPath = join(tempDir, donePlan!.filename);
-    await writeFile(targetPath, updated, "utf-8");
+    await unlink(donePlan!.filepath);
 
-    const reRead = await readFile(targetPath, "utf-8");
-    const parsed = parsePlan(reRead);
-    expect(parsed.frontmatter!.status).toBe("archived");
+    expect(await fileExists(donePlan!.filepath)).toBe(false);
   });
 });
