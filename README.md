@@ -6,13 +6,13 @@ Track status (`draft` / `active` / `done`), list, filter, and clean up plan file
 
 ## Why
 
-Plan documents in agent coding are **ephemeral by nature**. Once a task is complete, the valuable outcomes should be published to Issues, PRs, Wikis, or other durable artifacts — not left to accumulate as stale files.
+We believe plan documents in agent coding are **ephemeral by nature**. Once a task is complete, the valuable outcomes should be published to Issues, PRs, Wikis, or other durable artifacts — the plan files themselves have served their purpose.
 
-A tool with a broad user base like Claude Code should not impose an opinionated way to manage these generated files. Users should be free to choose the management approach that fits their workflow. ccplan is one such approach.
+In our view, a tool with a broad user base like Claude Code shouldn't impose an opinionated way to manage these generated files. Users should be free to choose the management approach that fits their workflow. ccplan is one such approach.
 
-Since humans ultimately judge whether work is complete, fully automating a plan's lifecycle is difficult. ccplan aims to give humans a simple way to manage plans in the batches and cadences that make sense to them.
+Since humans ultimately judge whether work is complete, we find that fully automating a plan's lifecycle is difficult. ccplan aims to give humans a simple way to manage plans in the batches and cadences that make sense to them.
 
-> **Future direction:** We are considering Agent Skills integration so that agents can assist with plan lifecycle management on behalf of the user.
+> **Future direction:** We are exploring Agent Skills integration so that agents can assist with plan lifecycle management on behalf of the user.
 
 ## Install
 
