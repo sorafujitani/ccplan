@@ -29,21 +29,23 @@ export const statusCommand: CommandDef = {
 
     const newStatus = values.latest ? positionals[0] : positionals[1];
     if (!newStatus) {
-      const usage = values.latest
-        ? "ccplan status --latest <status>"
-        : positionals.length === 0
-          ? "ccplan status <file> <status>"
-          : "Missing <status> argument.";
-      console.error(
-        `Usage: ${usage}\nValid statuses: ${VALID_STATUSES.join(", ")}`,
-      );
+      if (values.latest) {
+        console.error(
+          `Missing status. Usage: ccplan status --latest <status>`,
+        );
+      } else if (positionals.length === 0) {
+        console.error(`Missing file and status. Usage: ccplan status <file> <status>`);
+      } else {
+        console.error(`Missing status for ${positionals[0]}. Usage: ccplan status <file> <status>`);
+      }
+      console.error(`Valid statuses: ${VALID_STATUSES.join(", ")}`);
       process.exitCode = 1;
       return;
     }
 
     if (!isValidStatus(newStatus)) {
       console.error(
-        `Invalid status: ${newStatus}\nValid statuses: ${VALID_STATUSES.join(", ")}`,
+        `Invalid status "${newStatus}". Valid statuses: ${VALID_STATUSES.join(", ")}`,
       );
       process.exitCode = 1;
       return;
@@ -56,7 +58,7 @@ export const statusCommand: CommandDef = {
       !!values.latest,
     );
     if (!result.ok) {
-      console.error(result.error);
+      console.error(`${result.error} Run 'ccplan list' to see available plans.`);
       process.exitCode = 1;
       return;
     }
@@ -64,7 +66,7 @@ export const statusCommand: CommandDef = {
     const { plan } = result;
     const store = await readMetaStore(config.plansDir);
     const oldMeta = getMeta(store, plan.filename);
-    const oldStatus = oldMeta?.status ?? "none";
+    const oldStatus = oldMeta?.status ?? "(unset)";
 
     const updatedStore = setMeta(store, plan.filename, { status: newStatus });
     await writeMetaStore(config.plansDir, updatedStore);

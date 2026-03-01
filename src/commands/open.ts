@@ -26,7 +26,7 @@ export const openCommand: CommandDef = {
       !!values.latest,
     );
     if (!result.ok) {
-      console.error(result.error);
+      console.error(`${result.error} Run 'ccplan list' to see available plans.`);
       process.exitCode = 1;
       return;
     }

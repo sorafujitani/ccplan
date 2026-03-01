@@ -46,9 +46,13 @@ _ccplan() {
           ;;
         clean)
           _arguments \\
+            '(--status -s)'{--status,-s}'[Filter by status]:status:(draft active done)' \\
             '(--days -d)'{--days,-d}'[Minimum days since updated]:days:' \\
+            '--all[Remove day limit]' \\
+            '(--latest -l)'{--latest,-l}'[Target most recently modified plan]' \\
             '--dry-run[Preview without changes]' \\
-            '(--force -f)'{--force,-f}'[Skip confirmation]'
+            '(--force -f)'{--force,-f}'[Skip confirmation]' \\
+            '1:plan file:_ccplan_plans'
           ;;
         *)
           _ccplan_plans
@@ -89,7 +93,14 @@ const BASH_COMPLETION = `_ccplan() {
       fi
       ;;
     clean)
-      COMPREPLY=( $(compgen -W "--days --dry-run --force" -- "\${cur}") )
+      if [[ "\${prev}" == "--status" || "\${prev}" == "-s" ]]; then
+        COMPREPLY=( $(compgen -W "draft active done" -- "\${cur}") )
+      elif [[ -d ".claude/plans" ]]; then
+        local plans=$(ls .claude/plans/*.md 2>/dev/null | xargs -I{} basename {})
+        COMPREPLY=( $(compgen -W "\${plans} --status --days --all --latest --dry-run --force" -- "\${cur}") )
+      else
+        COMPREPLY=( $(compgen -W "--status --days --all --latest --dry-run --force" -- "\${cur}") )
+      fi
       ;;
   esac
 }

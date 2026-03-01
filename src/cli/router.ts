@@ -52,8 +52,7 @@ export class Router {
       }
       await cmd.handler(subArgs);
     } else {
-      console.error(`Unknown command: ${first}`);
-      this.printHelp();
+      console.error(`Unknown command: ${first}. Run 'ccplan --help' for available commands.`);
       process.exitCode = 1;
     }
   }

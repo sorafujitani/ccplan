@@ -22,7 +22,7 @@ export function formatPlanTable(plans: Plan[]): string {
   for (const plan of plans) {
     const status = plan.meta
       ? colorStatus(plan.meta.status)
-      : chalk.yellow("no-meta");
+      : chalk.dim("unknown");
     const updated = plan.meta?.updated
       ? chalk.dim(` ${formatRelativeDate(plan.meta.updated)}`)
       : "";
