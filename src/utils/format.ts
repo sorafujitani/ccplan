@@ -20,11 +20,11 @@ export function formatPlanTable(plans: Plan[]): string {
 
   const lines: string[] = [];
   for (const plan of plans) {
-    const status = plan.frontmatter
-      ? colorStatus(plan.frontmatter.status)
+    const status = plan.meta
+      ? colorStatus(plan.meta.status)
       : chalk.yellow("no-meta");
-    const updated = plan.frontmatter?.updated
-      ? chalk.dim(` ${formatRelativeDate(plan.frontmatter.updated)}`)
+    const updated = plan.meta?.updated
+      ? chalk.dim(` ${formatRelativeDate(plan.meta.updated)}`)
       : "";
     lines.push(`  ${status.padEnd(20)} ${plan.filename}${updated}`);
   }
@@ -36,10 +36,10 @@ export function formatPlanJson(plans: Plan[]): string {
   const data = plans.map((p) => ({
     filename: p.filename,
     filepath: p.filepath,
-    hasFrontmatter: p.hasFrontmatter,
-    status: p.frontmatter?.status ?? null,
-    created: p.frontmatter?.created ?? null,
-    updated: p.frontmatter?.updated ?? null,
+    hasMeta: p.meta !== null,
+    status: p.meta?.status ?? null,
+    created: p.meta?.created ?? null,
+    updated: p.meta?.updated ?? null,
   }));
   return JSON.stringify(data, null, 2);
 }

@@ -1,5 +1,5 @@
 import { resolveConfig } from "../core/config.js";
-import { scanPlans } from "../core/plan.js";
+import { scanPlansWithMeta } from "../core/plan.js";
 import { formatPlanTable, formatPlanJson } from "../utils/format.js";
 import { parse } from "../cli/args.js";
 import type { CommandDef } from "../cli/router.js";
@@ -24,15 +24,15 @@ export const listCommand: CommandDef = {
   handler: async (args) => {
     const { values } = parse(args, options);
     const config = await resolveConfig();
-    let plans = await scanPlans(config.plansDir);
+    let plans = await scanPlansWithMeta(config.plansDir);
 
     if (values.status) {
-      plans = plans.filter((p) => p.frontmatter?.status === values.status);
+      plans = plans.filter((p) => p.meta?.status === values.status);
     }
 
     plans.sort((a, b) => {
-      const aDate = a.frontmatter?.updated ?? "";
-      const bDate = b.frontmatter?.updated ?? "";
+      const aDate = a.meta?.updated ?? "";
+      const bDate = b.meta?.updated ?? "";
       return bDate.localeCompare(aDate);
     });
 

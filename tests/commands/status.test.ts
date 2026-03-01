@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { join } from "node:path";
-import { readFile, writeFile, cp, rm } from "node:fs/promises";
-import { scanPlans, resolvePlanFile } from "../../src/core/plan.js";
-import {
-  parsePlan,
-  serializePlan,
-  createDefaultFrontmatter,
-} from "../../src/core/frontmatter.js";
+import { readFile, cp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
+import { scanPlansWithMeta, resolvePlanFile } from "../../src/core/plan.js";
+import {
+  readMetaStore,
+  writeMetaStore,
+  setMeta,
+} from "../../src/core/metastore.js";
 
 const FIXTURES_DIR = join(import.meta.dirname, "../fixtures/plans");
 let tempDir: string;
@@ -23,37 +23,35 @@ afterEach(async () => {
 });
 
 describe("status command logic", () => {
-  it("changes status of a plan", async () => {
-    const plans = await scanPlans(tempDir);
+  it("changes status via metastore without modifying plan file", async () => {
+    const plans = await scanPlansWithMeta(tempDir);
     const plan = resolvePlanFile(plans, "plan-draft");
     expect(plan).toBeDefined();
 
-    const raw = await readFile(plan!.filepath, "utf-8");
-    const updated = serializePlan(raw, { status: "active" });
-    const targetPath = join(tempDir, plan!.filename);
-    await writeFile(targetPath, updated, "utf-8");
+    const originalContent = await readFile(plan!.filepath, "utf-8");
 
-    const reRead = await readFile(targetPath, "utf-8");
-    const parsed = parsePlan(reRead);
-    expect(parsed.frontmatter!.status).toBe("active");
+    let store = await readMetaStore(tempDir);
+    store = setMeta(store, plan!.filename, { status: "active" });
+    await writeMetaStore(tempDir, store);
+
+    const afterContent = await readFile(plan!.filepath, "utf-8");
+    expect(afterContent).toBe(originalContent);
+
+    const updatedStore = await readMetaStore(tempDir);
+    expect(updatedStore.plans[plan!.filename].status).toBe("active");
   });
 
-  it("auto-initializes frontmatter when missing", async () => {
-    const plans = await scanPlans(tempDir);
+  it("creates meta entry for plan without prior metadata", async () => {
+    const plans = await scanPlansWithMeta(tempDir);
     const plan = resolvePlanFile(plans, "plan-no-meta");
     expect(plan).toBeDefined();
-    expect(plan!.hasFrontmatter).toBe(false);
+    expect(plan!.meta).not.toBeNull();
 
-    const raw = await readFile(plan!.filepath, "utf-8");
-    const defaults = createDefaultFrontmatter();
-    defaults.status = "active";
-    const updated = serializePlan(raw, defaults);
-    const targetPath = join(tempDir, plan!.filename);
-    await writeFile(targetPath, updated, "utf-8");
+    let store = await readMetaStore(tempDir);
+    store = setMeta(store, plan!.filename, { status: "done" });
+    await writeMetaStore(tempDir, store);
 
-    const reRead = await readFile(targetPath, "utf-8");
-    const parsed = parsePlan(reRead);
-    expect(parsed.frontmatter).not.toBeNull();
-    expect(parsed.frontmatter!.status).toBe("active");
+    const updatedStore = await readMetaStore(tempDir);
+    expect(updatedStore.plans[plan!.filename].status).toBe("done");
   });
 });

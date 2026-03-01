@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "plans": {
+    "plan-active.md": {
+      "status": "active",
+      "created": "2026-01-15T10:00:00.000Z",
+      "updated": "2026-02-20T12:00:00.000Z"
+    },
+    "plan-draft.md": {
+      "status": "draft",
+      "created": "2026-02-01T08:00:00.000Z",
+      "updated": "2026-02-01T08:00:00.000Z"
+    },
+    "plan-done.md": {
+      "status": "done",
+      "created": "2026-01-01T00:00:00.000Z",
+      "updated": "2026-01-10T00:00:00.000Z"
+    }
+  }
+}

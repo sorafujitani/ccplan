@@ -19,8 +19,7 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "chalk": "^5.4.1",
-    "gray-matter": "^4.0.3"
+    "chalk": "^5.4.1"
   },
   "devDependencies": {
     "@typescript/native-preview": "latest",

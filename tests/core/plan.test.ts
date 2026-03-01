@@ -1,7 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { join } from "node:path";
+import { cp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { randomUUID } from "node:crypto";
 import {
   scanPlans,
+  scanPlansWithMeta,
   readPlan,
   resolvePlanFile,
   getLatestPlan,
@@ -16,28 +20,49 @@ describe("scanPlans", () => {
     expect(plans.every((p) => p.filename.endsWith(".md"))).toBe(true);
   });
 
-  it("correctly identifies plans with and without frontmatter", async () => {
+  it("returns plans with meta as null", async () => {
     const plans = await scanPlans(FIXTURES_DIR);
-    const withMeta = plans.filter((p) => p.hasFrontmatter);
-    const withoutMeta = plans.filter((p) => !p.hasFrontmatter);
+    expect(plans.every((p) => p.meta === null)).toBe(true);
+  });
+});
 
-    expect(withMeta.length).toBe(3);
-    expect(withoutMeta.length).toBe(1);
+describe("scanPlansWithMeta", () => {
+  let tempDir: string;
+
+  beforeEach(async () => {
+    tempDir = join(tmpdir(), `ccplan-test-${randomUUID()}`);
+    await cp(FIXTURES_DIR, tempDir, { recursive: true });
+  });
+
+  afterEach(async () => {
+    await rm(tempDir, { recursive: true, force: true });
+  });
+
+  it("attaches meta from metastore", async () => {
+    const plans = await scanPlansWithMeta(tempDir);
+    const active = plans.find((p) => p.filename === "plan-active.md");
+    expect(active?.meta?.status).toBe("active");
+  });
+
+  it("auto-registers plans without meta as active", async () => {
+    const plans = await scanPlansWithMeta(tempDir);
+    const noMeta = plans.find((p) => p.filename === "plan-no-meta.md");
+    expect(noMeta?.meta).not.toBeNull();
+    expect(noMeta?.meta?.status).toBe("active");
   });
 });
 
 describe("readPlan", () => {
-  it("reads a plan with frontmatter", async () => {
+  it("reads a plan file", async () => {
     const plan = await readPlan(join(FIXTURES_DIR, "plan-active.md"));
     expect(plan.filename).toBe("plan-active.md");
-    expect(plan.hasFrontmatter).toBe(true);
-    expect(plan.frontmatter!.status).toBe("active");
+    expect(plan.meta).toBeNull();
+    expect(plan.content).toContain("Auth Feature Plan");
   });
 
   it("reads a plan without frontmatter", async () => {
     const plan = await readPlan(join(FIXTURES_DIR, "plan-no-meta.md"));
-    expect(plan.hasFrontmatter).toBe(false);
-    expect(plan.frontmatter).toBeNull();
+    expect(plan.meta).toBeNull();
     expect(plan.content).toContain("Plan Without Metadata");
   });
 });

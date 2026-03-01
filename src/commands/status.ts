@@ -1,12 +1,12 @@
-import { readFile, writeFile } from "node:fs/promises";
 import { resolveConfig } from "../core/config.js";
 import { resolveSinglePlan } from "../core/plan.js";
 import {
-  isValidStatus,
-  serializePlan,
-  createDefaultFrontmatter,
-  VALID_STATUSES,
-} from "../core/frontmatter.js";
+  readMetaStore,
+  writeMetaStore,
+  getMeta,
+  setMeta,
+} from "../core/metastore.js";
+import { isValidStatus, VALID_STATUSES } from "../core/frontmatter.js";
 import { parse } from "../cli/args.js";
 import type { CommandDef } from "../cli/router.js";
 import chalk from "chalk";
@@ -62,19 +62,13 @@ export const statusCommand: CommandDef = {
     }
 
     const { plan } = result;
-    const raw = await readFile(plan.filepath, "utf-8");
-    const oldStatus = plan.frontmatter?.status ?? "none";
+    const store = await readMetaStore(config.plansDir);
+    const oldMeta = getMeta(store, plan.filename);
+    const oldStatus = oldMeta?.status ?? "none";
 
-    let updated: string;
-    if (!plan.hasFrontmatter) {
-      const defaults = createDefaultFrontmatter();
-      defaults.status = newStatus;
-      updated = serializePlan(raw, defaults);
-    } else {
-      updated = serializePlan(raw, { status: newStatus });
-    }
+    const updatedStore = setMeta(store, plan.filename, { status: newStatus });
+    await writeMetaStore(config.plansDir, updatedStore);
 
-    await writeFile(plan.filepath, updated, "utf-8");
     console.log(
       `${chalk.green("✓")} ${plan.filename}: ${oldStatus} → ${newStatus}`,
     );

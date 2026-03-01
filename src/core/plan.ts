@@ -1,25 +1,19 @@
-import { readdir, readFile, writeFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { join, basename } from "node:path";
-import { parsePlan } from "./frontmatter.js";
-import type { CcplanFrontmatter } from "./frontmatter.js";
+import {
+  readMetaStore,
+  writeMetaStore,
+  getMeta,
+  createDefaultMeta,
+} from "./metastore.js";
+import type { PlanMeta } from "./metastore.js";
 
-export type PlanWithFrontmatter = {
+export type Plan = {
   filename: string;
   filepath: string;
-  frontmatter: CcplanFrontmatter;
   content: string;
-  hasFrontmatter: true;
+  meta: PlanMeta | null;
 };
-
-export type PlanWithoutFrontmatter = {
-  filename: string;
-  filepath: string;
-  frontmatter: null;
-  content: string;
-  hasFrontmatter: false;
-};
-
-export type Plan = PlanWithFrontmatter | PlanWithoutFrontmatter;
 
 export type ResolvePlanResult =
   | { ok: true; plan: Plan }
@@ -32,35 +26,40 @@ export async function scanPlans(plansDir: string): Promise<Plan[]> {
   return Promise.all(mdFiles.map((file) => readPlan(join(plansDir, file))));
 }
 
+export async function scanPlansWithMeta(plansDir: string): Promise<Plan[]> {
+  const plans = await scanPlans(plansDir);
+  const store = await readMetaStore(plansDir);
+
+  let dirty = false;
+  for (const plan of plans) {
+    const meta = getMeta(store, plan.filename);
+    if (meta) {
+      plan.meta = meta;
+    } else {
+      const defaultMeta = createDefaultMeta();
+      plan.meta = defaultMeta;
+      store.plans[plan.filename] = defaultMeta;
+      dirty = true;
+    }
+  }
+
+  if (dirty) {
+    await writeMetaStore(plansDir, store);
+  }
+
+  return plans;
+}
+
 export async function readPlan(filepath: string): Promise<Plan> {
   const raw = await readFile(filepath, "utf-8");
-  const parsed = parsePlan(raw);
   const filename = basename(filepath);
-
-  if (parsed.frontmatter !== null) {
-    return {
-      filename,
-      filepath,
-      frontmatter: parsed.frontmatter,
-      content: parsed.content,
-      hasFrontmatter: true,
-    };
-  }
 
   return {
     filename,
     filepath,
-    frontmatter: null,
-    content: parsed.content,
-    hasFrontmatter: false,
+    content: raw,
+    meta: null,
   };
-}
-
-export async function writePlan(
-  filepath: string,
-  content: string,
-): Promise<void> {
-  await writeFile(filepath, content, "utf-8");
 }
 
 export function resolvePlanFile(
@@ -93,7 +92,7 @@ export async function resolveSinglePlan(
     return { ok: false, error: "No plan file specified." };
   }
 
-  const plans = await scanPlans(plansDir);
+  const plans = await scanPlansWithMeta(plansDir);
   const plan = resolvePlanFile(plans, ref);
   if (!plan) return { ok: false, error: `Plan not found: ${ref}` };
   return { ok: true, plan };

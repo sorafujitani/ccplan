@@ -1,6 +1,11 @@
 import { unlink } from "node:fs/promises";
 import { resolveConfig } from "../core/config.js";
-import { scanPlans } from "../core/plan.js";
+import { scanPlansWithMeta } from "../core/plan.js";
+import {
+  readMetaStore,
+  writeMetaStore,
+  removeMeta,
+} from "../core/metastore.js";
 import { parse } from "../cli/args.js";
 import { confirm } from "../utils/prompt.js";
 import type { CommandDef } from "../cli/router.js";
@@ -34,13 +39,13 @@ export const cleanCommand: CommandDef = {
     const dryRun = values["dry-run"];
 
     const config = await resolveConfig();
-    const plans = await scanPlans(config.plansDir);
+    const plans = await scanPlansWithMeta(config.plansDir);
 
     const now = new Date();
     const targets = plans.filter((p) => {
-      if (p.frontmatter?.status !== "done") return false;
-      if (!p.frontmatter.updated) return true;
-      const updated = new Date(p.frontmatter.updated);
+      if (p.meta?.status !== "done") return false;
+      if (!p.meta.updated) return true;
+      const updated = new Date(p.meta.updated);
       const diffDays =
         (now.getTime() - updated.getTime()) / (1000 * 60 * 60 * 24);
       return diffDays >= minDays;
@@ -69,9 +74,12 @@ export const cleanCommand: CommandDef = {
       }
     }
 
+    let store = await readMetaStore(config.plansDir);
     for (const plan of targets) {
       await unlink(plan.filepath);
+      store = removeMeta(store, plan.filename);
       console.log(`${chalk.red("✗")} ${plan.filename} deleted`);
     }
+    await writeMetaStore(config.plansDir, store);
   },
 };
