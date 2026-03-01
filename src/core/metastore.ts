@@ -81,7 +81,7 @@ export function setMeta(
   const now = new Date().toISOString();
 
   const merged: PlanMeta = existing
-    ? { ...existing, ...updates, updated: now }
+    ? { ...existing, ...updates, created: existing.created, updated: now }
     : { ...createDefaultMeta(), ...updates, created: now, updated: now };
 
   return {

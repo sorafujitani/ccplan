@@ -39,7 +39,9 @@ export class Router {
     }
 
     if (first === "--completions") {
-      printCompletions(args[1] ?? "zsh");
+      const shell = args.find((a) => a !== "--completions" && !a.startsWith("--")) ?? "zsh";
+      const init = args.includes("--init");
+      printCompletions(shell, init);
       return;
     }
 

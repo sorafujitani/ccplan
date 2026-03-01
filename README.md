@@ -32,13 +32,19 @@ chmod +x ccplan
 
 Tab completion for plan filenames, statuses, and options. Highly recommended — no need to remember file names.
 
+Add the following line to your shell config to enable completions permanently:
+
 ```bash
 # zsh — add to ~/.zshrc
-eval "$(ccplan --completions zsh)"
+eval "$(ccplan --completions zsh --init)"
 
 # bash — add to ~/.bashrc
-eval "$(ccplan --completions bash)"
+eval "$(ccplan --completions bash --init)"
 ```
+
+Then restart your shell (or `source` the config file).
+
+> **Tip:** Running `ccplan --completions zsh` (without `--init`) will show these setup instructions.
 
 After restarting your shell, the following will be completed:
 

@@ -115,18 +115,34 @@ const COMPLETIONS: Record<Shell, string> = {
   bash: BASH_COMPLETION,
 };
 
+const RC_FILES: Record<Shell, string> = {
+  zsh: "~/.zshrc",
+  bash: "~/.bashrc",
+};
+
 function isSupportedShell(shell: string): shell is Shell {
   return (SUPPORTED_SHELLS as readonly string[]).includes(shell);
 }
 
-export function printCompletions(shell: string): void {
-  if (isSupportedShell(shell)) {
+export function printCompletions(shell: string, init: boolean): void {
+  if (!isSupportedShell(shell)) {
+    console.error(
+      `Unsupported shell: ${shell}\nSupported: ${SUPPORTED_SHELLS.join(", ")}`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  // --init: output the completion script (for eval in shell config).
+  // Without --init: show setup instructions.
+  if (init) {
     console.log(COMPLETIONS[shell]);
     return;
   }
 
-  console.error(
-    `Unsupported shell: ${shell}\nSupported: ${SUPPORTED_SHELLS.join(", ")}`,
-  );
-  process.exitCode = 1;
+  const rc = RC_FILES[shell];
+  console.log(`# Add the following line to ${rc} to enable completions permanently:\n`);
+  console.log(`  eval "$(ccplan --completions ${shell} --init)"\n`);
+  console.log(`# Then restart your shell or run:\n`);
+  console.log(`  source ${rc}`);
 }
