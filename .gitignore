@@ -3,3 +3,5 @@ dist/
 bun.lock
 *.tsbuildinfo
 ccplan
+
+.claude/plans/
