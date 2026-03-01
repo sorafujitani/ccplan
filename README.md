@@ -18,6 +18,25 @@ curl -L https://github.com/fujitanisora/ccplan/releases/latest/download/ccplan-d
 chmod +x ccplan
 ```
 
+## Shell Completion (Recommended)
+
+Tab completion for plan filenames, statuses, and options. Highly recommended — no need to remember file names.
+
+```bash
+# zsh — add to ~/.zshrc
+eval "$(ccplan --completions zsh)"
+
+# bash — add to ~/.bashrc
+eval "$(ccplan --completions bash)"
+```
+
+After restarting your shell, the following will be completed:
+
+- `ccplan <TAB>` — subcommands (`list`, `status`, `clean`, `open`)
+- `ccplan status <TAB>` — `.claude/plans/*.md` filenames
+- `ccplan status file.md <TAB>` — statuses (`draft`, `active`, `done`)
+- `ccplan clean <TAB>` — options and filenames
+
 ## Usage
 
 ### `ccplan list`
@@ -77,16 +96,6 @@ ccplan clean my-plan.md --force       # skip confirmation
 | `--dry-run` | Preview without changes |
 | `-f, --force` | Skip confirmation |
 
-## Shell Completion
-
-```bash
-# zsh (add to .zshrc)
-eval "$(ccplan --completions zsh)"
-
-# bash (add to .bashrc)
-eval "$(ccplan --completions bash)"
-```
-
 ## Metadata Store
 
 Plan metadata is stored in `.claude/plans/.ccplan-meta.json` — plan files are never modified.
@@ -116,6 +125,10 @@ bun run lint
 bun run build        # dist/index.js (npm package)
 bun run build:bin    # ./ccplan (single binary)
 ```
+
+## Acknowledgements
+
+The name `ccplan` (cc = Claude Code) is inspired by [ccusage](https://github.com/ryoppippi/ccusage).
 
 ## License
 
