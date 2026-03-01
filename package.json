@@ -1,7 +1,7 @@
 {
   "name": "ccplan",
   "version": "0.1.2",
-  "description": "CLI tool to manage Claude Code plan file lifecycle",
+  "description": "CLI to manage .claude/plans/*.md files — track status, list, filter, and clean up Claude Code plans",
   "type": "module",
   "bin": {
     "ccplan": "dist/index.js"
@@ -38,7 +38,9 @@
     "claude",
     "claude-code",
     "plan",
-    "cli"
+    "cli",
+    "anthropic",
+    "ai-workflow"
   ],
   "engines": {
     "node": ">=18"
