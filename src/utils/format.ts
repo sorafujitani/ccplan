@@ -10,6 +10,10 @@ export function colorStatus(status: PlanStatus): string {
       return chalk.blue(status);
     case "done":
       return chalk.green(status);
+    default: {
+      const _: never = status;
+      return String(_);
+    }
   }
 }
 

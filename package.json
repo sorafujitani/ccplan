@@ -14,18 +14,20 @@
     "build:bin": "bun build --compile ./src/index.ts --outfile ccplan --minify",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
     "lint": "oxlint src tests",
     "format": "oxfmt src tests",
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "chalk": "^5.4.1"
+    "chalk": "^5.4.1",
+    "valibot": "^1.2.0"
   },
   "devDependencies": {
-    "@typescript/native-preview": "latest",
+    "@typescript/native-preview": "^7.0.0-dev.20260228.1",
     "@types/node": "^22",
     "esbuild": "^0.25",
-    "oxlint": "latest",
+    "oxlint": "^1.50.0",
     "typescript": "^5.8.2",
     "vitest": "^3.1.1"
   },

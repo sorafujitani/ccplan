@@ -3,7 +3,6 @@ import { parseArgs, type ParseArgsConfig } from "node:util";
 export type OptionDef = {
   type: "string" | "boolean";
   short?: string;
-  default?: string | boolean;
   description?: string;
 };
 

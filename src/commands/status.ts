@@ -1,5 +1,3 @@
-import { resolveConfig } from "../core/config.js";
-import { resolveSinglePlan } from "../core/plan.js";
 import {
   readMetaStore,
   writeMetaStore,
@@ -7,6 +5,7 @@ import {
   setMeta,
 } from "../core/metastore.js";
 import { isValidStatus, VALID_STATUSES } from "../core/frontmatter.js";
+import { resolveTargetPlan } from "./_shared.js";
 import { parse } from "../cli/args.js";
 import type { CommandDef } from "../cli/router.js";
 import chalk from "chalk";
@@ -51,19 +50,10 @@ export const statusCommand: CommandDef = {
       return;
     }
 
-    const config = await resolveConfig();
-    const result = await resolveSinglePlan(
-      config.plansDir,
-      positionals[0],
-      !!values.latest,
-    );
-    if (!result.ok) {
-      console.error(`${result.error} Run 'ccplan list' to see available plans.`);
-      process.exitCode = 1;
-      return;
-    }
+    const ctx = await resolveTargetPlan(positionals[0], !!values.latest);
+    if (!ctx) return;
 
-    const { plan } = result;
+    const { config, plan } = ctx;
     const store = await readMetaStore(config.plansDir);
     const oldMeta = getMeta(store, plan.filename);
     const oldStatus = oldMeta?.status ?? "(unset)";

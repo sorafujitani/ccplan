@@ -1,11 +1,12 @@
 import { unlink } from "node:fs/promises";
 import { resolveConfig } from "../core/config.js";
-import { scanPlansWithMeta, resolveSinglePlan } from "../core/plan.js";
+import { scanPlansWithMeta } from "../core/plan.js";
 import {
   readMetaStore,
   writeMetaStore,
   removeMeta,
 } from "../core/metastore.js";
+import { resolveTargetPlan } from "./_shared.js";
 import { parse } from "../cli/args.js";
 import { confirm } from "../utils/prompt.js";
 import type { CommandDef } from "../cli/router.js";
@@ -52,22 +53,12 @@ export const cleanCommand: CommandDef = {
     const { values, positionals } = parse(args, options);
     const dryRun = values["dry-run"];
 
-    const config = await resolveConfig();
-
     // Single-file mode: positional arg or --latest
     if (positionals.length > 0 || values.latest) {
-      const result = await resolveSinglePlan(
-        config.plansDir,
-        positionals[0],
-        !!values.latest,
-      );
-      if (!result.ok) {
-        console.error(`${result.error} Run 'ccplan list' to see available plans.`);
-        process.exitCode = 1;
-        return;
-      }
+      const ctx = await resolveTargetPlan(positionals[0], !!values.latest);
+      if (!ctx) return;
 
-      const { plan } = result;
+      const { config, plan } = ctx;
       console.log(`Target: ${plan.filename}`);
 
       if (dryRun) {
@@ -92,6 +83,8 @@ export const cleanCommand: CommandDef = {
     }
 
     // Batch mode
+    const config = await resolveConfig();
+
     if (values.all && values.days) {
       console.error("Cannot use --all and --days together. Use one or the other.");
       process.exitCode = 1;
@@ -99,7 +92,13 @@ export const cleanCommand: CommandDef = {
     }
 
     const statusFilter = values.status ?? "done";
-    const minDays = values.all ? 0 : values.days ? parseInt(values.days, 10) : 30;
+    const rawDays = values.days ? parseInt(values.days, 10) : undefined;
+    if (rawDays !== undefined && (isNaN(rawDays) || rawDays < 0)) {
+      console.error(`Invalid --days value: "${values.days}". Must be a non-negative integer.`);
+      process.exitCode = 1;
+      return;
+    }
+    const minDays = values.all ? 0 : rawDays ?? 30;
 
     const plans = await scanPlansWithMeta(config.plansDir);
 
@@ -141,11 +140,22 @@ export const cleanCommand: CommandDef = {
     }
 
     let store = await readMetaStore(config.plansDir);
+    const failures: string[] = [];
     for (const plan of targets) {
-      await unlink(plan.filepath);
-      store = removeMeta(store, plan.filename);
-      console.log(`${chalk.dim("-")} ${plan.filename} deleted`);
+      try {
+        await unlink(plan.filepath);
+        store = removeMeta(store, plan.filename);
+        console.log(`${chalk.dim("-")} ${plan.filename} deleted`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`${chalk.red("!")} ${plan.filename}: ${msg}`);
+        failures.push(plan.filename);
+      }
     }
     await writeMetaStore(config.plansDir, store);
+    if (failures.length > 0) {
+      console.error(`\nFailed to delete ${failures.length} plan(s).`);
+      process.exitCode = 1;
+    }
   },
 };

@@ -146,3 +146,54 @@ describe("round-trip", () => {
     expect(loaded.plans["b.md"].status).toBe("done");
   });
 });
+
+describe("readMetaStore validation", () => {
+  it("returns empty store for corrupted JSON", async () => {
+    await writeFile(
+      join(tempDir, ".ccplan-meta.json"),
+      "not valid json {{{",
+      "utf-8",
+    );
+    const store = await readMetaStore(tempDir);
+    expect(store.version).toBe(1);
+    expect(store.plans).toEqual({});
+  });
+
+  it("returns empty store for invalid schema (missing version)", async () => {
+    await writeFile(
+      join(tempDir, ".ccplan-meta.json"),
+      JSON.stringify({ plans: {} }),
+      "utf-8",
+    );
+    const store = await readMetaStore(tempDir);
+    expect(store.version).toBe(1);
+    expect(store.plans).toEqual({});
+  });
+
+  it("returns empty store for invalid schema (plans is not object)", async () => {
+    await writeFile(
+      join(tempDir, ".ccplan-meta.json"),
+      JSON.stringify({ version: 1, plans: "bad" }),
+      "utf-8",
+    );
+    const store = await readMetaStore(tempDir);
+    expect(store.version).toBe(1);
+    expect(store.plans).toEqual({});
+  });
+
+  it("returns empty store for invalid plan entry (bad status)", async () => {
+    await writeFile(
+      join(tempDir, ".ccplan-meta.json"),
+      JSON.stringify({
+        version: 1,
+        plans: {
+          "test.md": { status: "invalid", created: "2026-01-01", updated: "2026-01-01" },
+        },
+      }),
+      "utf-8",
+    );
+    const store = await readMetaStore(tempDir);
+    expect(store.version).toBe(1);
+    expect(store.plans).toEqual({});
+  });
+});

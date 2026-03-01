@@ -1,20 +1,24 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { PlanStatus } from "./frontmatter.js";
+import * as v from "valibot";
+import { VALID_STATUSES } from "./frontmatter.js";
 import { fileExists } from "../utils/fs.js";
 
 const META_FILENAME = ".ccplan-meta.json";
 
-export type PlanMeta = {
-  status: PlanStatus;
-  created: string;
-  updated: string;
-};
+const PlanMetaSchema = v.object({
+  status: v.picklist([...VALID_STATUSES]),
+  created: v.string(),
+  updated: v.string(),
+});
 
-export type MetaStore = {
-  version: number;
-  plans: Record<string, PlanMeta>;
-};
+const MetaStoreSchema = v.object({
+  version: v.number(),
+  plans: v.record(v.string(), PlanMetaSchema),
+});
+
+export type PlanMeta = v.InferOutput<typeof PlanMetaSchema>;
+export type MetaStore = v.InferOutput<typeof MetaStoreSchema>;
 
 export function createEmptyStore(): MetaStore {
   return { version: 1, plans: {} };
@@ -37,8 +41,20 @@ export async function readMetaStore(plansDir: string): Promise<MetaStore> {
   }
 
   const raw = await readFile(metaPath, "utf-8");
-  const data = JSON.parse(raw) as MetaStore;
-  return data;
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch {
+    console.error(`Warning: corrupted ${META_FILENAME}, resetting.`);
+    return createEmptyStore();
+  }
+
+  const result = v.safeParse(MetaStoreSchema, json);
+  if (!result.success) {
+    console.error(`Warning: invalid ${META_FILENAME} schema, resetting.`);
+    return createEmptyStore();
+  }
+  return result.output;
 }
 
 export async function writeMetaStore(
