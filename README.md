@@ -80,18 +80,24 @@ ccplan clean --dry-run
 ccplan clean --force      # skip confirmation
 ```
 
-## Frontmatter Format
+## Metadata Store
 
-ccplan writes under the `ccplan` namespace. Existing frontmatter keys are preserved.
+ccplan stores plan metadata in `.claude/plans/.ccplan-meta.json` — plan files themselves are never modified.
 
-```yaml
----
-ccplan:
-  status: active
-  created: '2026-01-15T10:00:00.000Z'
-  updated: '2026-02-20T12:00:00.000Z'
----
+```json
+{
+  "version": 1,
+  "plans": {
+    "my-plan.md": {
+      "status": "active",
+      "created": "2026-01-15T10:00:00.000Z",
+      "updated": "2026-02-20T12:00:00.000Z"
+    }
+  }
+}
 ```
+
+Plans without metadata are automatically registered as `active` on first scan.
 
 ## Development
 
