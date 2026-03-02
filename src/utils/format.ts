@@ -48,7 +48,7 @@ export function formatPlanJson(plans: Plan[]): string {
   return JSON.stringify(data, null, 2);
 }
 
-function formatRelativeDate(iso: string): string {
+export function formatRelativeDate(iso: string): string {
   const date = new Date(iso);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();

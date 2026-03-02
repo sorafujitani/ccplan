@@ -20,6 +20,8 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
+    "@inquirer/checkbox": "^5.1.0",
+    "@inquirer/select": "^5.1.0",
     "chalk": "^5.4.1",
     "valibot": "^1.2.0"
   },
