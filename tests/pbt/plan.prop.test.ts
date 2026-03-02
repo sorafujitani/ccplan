@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import fc from "fast-check";
 import { resolvePlanFile } from "../../src/core/plan.js";
-import type { Plan } from "../../src/core/plan.js";
 import { arbFilename, arbPlan } from "./generators.js";
 
 describe("Plan Property-Based Tests", () => {
@@ -13,7 +12,7 @@ describe("Plan Property-Based Tests", () => {
       fc.assert(
         fc.property(
           fc.array(arbPlan, { minLength: 1, maxLength: 10 }),
-          fc.constantFrom(...["some/path", "/absolute/path", "./relative", "a/b/c"]),
+          fc.constantFrom("some/path", "/absolute/path", "./relative", "a/b/c"),
           (plans, prefix) => {
             // Pick a filename from the plans to ensure potential match
             const ref = plans[0].filename;

@@ -5,14 +5,12 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   createEmptyStore,
-  createDefaultMeta,
   readMetaStore,
   writeMetaStore,
   getMeta,
   setMeta,
   removeMeta,
 } from "../../src/core/metastore.js";
-import type { MetaStore, PlanMeta } from "../../src/core/metastore.js";
 import type { PlanStatus } from "../../src/core/frontmatter.js";
 import {
   arbMetaStore,
