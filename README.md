@@ -32,10 +32,10 @@ chmod +x ccplan
 
 ## Usage
 
-Commands that target a plan file (`status`, `open`) will show an **interactive selector** when no file is specified — no shell configuration needed.
+Commands that target a plan file (`status`, `open`) will show an **interactive selector with fuzzy search** when no file is specified — no shell configuration needed. Just start typing to filter by filename.
 
-- `status`: multi-select (checkbox) — change multiple plans at once
-- `open`: single-select
+- `status`: multi-select (checkbox) with search — change multiple plans at once
+- `open`: single-select with search
 
 ### `ccplan list`
 
