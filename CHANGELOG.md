@@ -4,8 +4,8 @@
 
 ### Added
 
-- Interactive plan selector using `@inquirer/select` — no shell configuration needed
-- Multi-select (`@inquirer/checkbox`) for `ccplan status` — batch status changes from a single command
+- Interactive plan selector with fuzzy search — no shell configuration needed
+- Multi-select with search for `ccplan status` — batch status changes from a single command
 - Auto-select when only one plan exists
 
 ### Changed
