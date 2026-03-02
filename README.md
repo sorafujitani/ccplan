@@ -10,6 +10,8 @@ We believe plan documents in agent coding are **ephemeral by nature**. Once a ta
 
 In our view, a tool with a broad user base like Claude Code shouldn't impose an opinionated way to manage these generated files. Users should be free to choose the management approach that fits their workflow. ccplan is one such approach.
 
+Accumulated plan files also appear in fuzzy finders (e.g. `fzf`, Ctrl-P in editors), polluting search results and degrading the navigation experience in your project.
+
 Since humans ultimately judge whether work is complete, we find that fully automating a plan's lifecycle is difficult. ccplan aims to give humans a simple way to manage plans in the batches and cadences that make sense to them.
 
 > **Future direction:** We are exploring Agent Skills integration so that agents can assist with plan lifecycle management on behalf of the user.
