@@ -5,6 +5,7 @@ import {
   setMeta,
 } from "../core/metastore.js";
 import { isValidStatus, VALID_STATUSES } from "../core/frontmatter.js";
+import { colorStatus } from "../utils/format.js";
 import { resolveTargetPlan } from "./_shared.js";
 import { resolveConfig } from "../core/config.js";
 import { scanPlansWithMeta } from "../core/plan.js";
@@ -99,7 +100,7 @@ export const statusCommand: CommandDef = {
         const oldStatus = oldMeta?.status ?? "(unset)";
         store = setMeta(store, plan.filename, { status: newStatus });
         console.log(
-          `${chalk.green("✓")} ${plan.filename}: ${oldStatus} → ${newStatus}`,
+          `${chalk.green("✓")} ${plan.filename}: ${oldStatus} → ${colorStatus(newStatus)}`,
         );
       }
       await writeMetaStore(config.plansDir, store);

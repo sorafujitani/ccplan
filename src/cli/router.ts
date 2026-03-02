@@ -1,6 +1,5 @@
 import { formatOptionsHelp } from "./args.js";
 import type { OptionDefs } from "./args.js";
-import { printCompletions } from "./completions.js";
 
 export type CommandHandler = (args: string[]) => Promise<void>;
 
@@ -35,13 +34,6 @@ export class Router {
 
     if (first === "--version" || first === "-V") {
       console.log(this.version);
-      return;
-    }
-
-    if (first === "--completions") {
-      const shell = args.find((a) => a !== "--completions" && !a.startsWith("--")) ?? "zsh";
-      const init = args.includes("--init");
-      printCompletions(shell, init);
       return;
     }
 
