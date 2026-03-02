@@ -21,7 +21,7 @@ const options = {
   days: {
     type: "string",
     short: "d",
-    description: "Minimum days since updated (default: 30)",
+    description: "Minimum days since updated (default: 7)",
   },
   all: {
     type: "boolean",
@@ -98,7 +98,7 @@ export const cleanCommand: CommandDef = {
       process.exitCode = 1;
       return;
     }
-    const minDays = values.all ? 0 : rawDays ?? 30;
+    const minDays = values.all ? 0 : rawDays ?? 7;
 
     const plans = await scanPlansWithMeta(config.plansDir);
 
