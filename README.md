@@ -30,32 +30,12 @@ curl -L https://github.com/fujitanisora/ccplan/releases/latest/download/ccplan-d
 chmod +x ccplan
 ```
 
-## Shell Completion (Recommended)
-
-Tab completion for plan filenames, statuses, and options. Highly recommended — no need to remember file names.
-
-Add the following line to your shell config to enable completions permanently:
-
-```bash
-# zsh — add to ~/.zshrc
-eval "$(ccplan --completions zsh --init)"
-
-# bash — add to ~/.bashrc
-eval "$(ccplan --completions bash --init)"
-```
-
-Then restart your shell (or `source` the config file).
-
-> **Tip:** Running `ccplan --completions zsh` (without `--init`) will show these setup instructions.
-
-After restarting your shell, the following will be completed:
-
-- `ccplan <TAB>` — subcommands (`list`, `status`, `clean`, `open`)
-- `ccplan status <TAB>` — `.claude/plans/*.md` filenames
-- `ccplan status file.md <TAB>` — statuses (`draft`, `active`, `done`)
-- `ccplan clean <TAB>` — options and filenames
-
 ## Usage
+
+Commands that target a plan file (`status`, `open`) will show an **interactive selector** when no file is specified — no shell configuration needed.
+
+- `status`: multi-select (checkbox) — change multiple plans at once
+- `open`: single-select
 
 ### `ccplan list`
 
@@ -67,11 +47,12 @@ ccplan list -s active          # filter by status
 ccplan list --json             # JSON output
 ```
 
-### `ccplan status <file> <status>`
+### `ccplan status [file] <status>`
 
 Change a plan's status.
 
 ```bash
+ccplan status done             # interactive multi-select
 ccplan status my-plan.md done
 ccplan status --latest active  # target most recently modified plan
 ```
@@ -83,6 +64,7 @@ Valid statuses: `draft`, `active`, `done`
 Open a plan file in `$EDITOR` (defaults to `vi`).
 
 ```bash
+ccplan open                    # interactive select
 ccplan open my-plan.md
 ccplan open --latest
 ```
@@ -93,9 +75,9 @@ Delete plans matching a filter.
 
 ```bash
 # Batch mode (filter by status + age)
-ccplan clean                          # done + 30 days old (default)
-ccplan clean --days 7                 # done + 7 days old
-ccplan clean -s draft                 # draft + 30 days old
+ccplan clean                          # done + 7 days old (default)
+ccplan clean --days 14                # done + 14 days old
+ccplan clean -s draft                 # draft + 7 days old
 ccplan clean -s draft --all           # all drafts regardless of age
 ccplan clean --dry-run                # preview without deleting
 
@@ -108,7 +90,7 @@ ccplan clean my-plan.md --force       # skip confirmation
 | Option | Description |
 |---|---|
 | `-s, --status <status>` | Filter by status (default: `done`) |
-| `-d, --days <n>` | Minimum days since updated (default: `30`) |
+| `-d, --days <n>` | Minimum days since updated (default: `7`) |
 | `--all` | Remove day limit (cannot combine with `--days`) |
 | `-l, --latest` | Target most recently modified plan |
 | `--dry-run` | Preview without changes |
