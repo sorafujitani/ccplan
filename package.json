@@ -1,6 +1,6 @@
 {
   "name": "ccplan",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "CLI to manage .claude/plans/*.md files — track status, list, filter, and clean up Claude Code plans",
   "type": "module",
   "bin": {
