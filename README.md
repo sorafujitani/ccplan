@@ -26,7 +26,7 @@ npm install -g ccplan
 bun add -g ccplan
 
 # Single binary (GitHub Releases)
-curl -L https://github.com/fujitanisora/ccplan/releases/latest/download/ccplan-darwin-arm64 -o ccplan
+curl -L https://github.com/sorafujitani/ccplan/releases/latest/download/ccplan-darwin-arm64 -o ccplan
 chmod +x ccplan
 ```
 
